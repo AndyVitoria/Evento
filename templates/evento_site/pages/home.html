@@ -1,0 +1,69 @@
+{% extends 'evento_site/pages/base.html' %}
+{% load static %}
+{% block content %}
+    <div id="index-banner" class="parallax-container">
+        <div class="section no-pad-bot">
+            <div class="container">
+                <br><br>
+                <h2 class="header center white-text text-lighten-2">Divulgue e Promova Eventos</h2>
+                <div class="row center">
+                    <h6 class="header col s12 light white-text">A modern responsive front-end framework based on
+                        Material Design</h6>
+                </div>
+                <div class="row center">
+                    <a href="#" id="download-button" class="btn-large waves-effect waves-light light-blue lighten-1">Criar
+                        Evento</a>
+                </div>
+                <br><br>
+
+            </div>
+        </div>
+        <div class="parallax"><img src="{% static 'images/carrousel/eventos.jpg' %}" alt="Unsplashed background img 1">
+        </div>
+    </div>
+
+    <div class="container white">
+        <div class="section">
+            <div id="top-eventos" class="row">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="fullscreen white" style="border-top: solid 1px #03a9f4;">
+        <div class="container white">
+            <div class="section">
+                <div class="row">
+                    <div class="col s12 m4">
+                        <h1>Categorias</h1>
+                        <a href="#" class="right">Mais Categorias</a>
+                    </div>
+                    <div class="col s12 m4">
+                        <img class="col m12 esponsive-img no-padding" src="{% static 'images/top-categorias/turismo.jpg' %}"
+                             alt="">
+                    </div>
+                    <div class="col s12 m4">
+                        <img class="col s12 esponsive-img no-padding" src="{% static 'images/top-categorias/bussines.png' %}"
+                             alt="">
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col s12 m4 no-padding">
+                        <img class="col s12 esponsive-img" src="{% static 'images/top-categorias/artistico.png' %}"
+                             alt="">
+                    </div>
+                    <div class="col s12 m4 no-padding"><img class="col s12 esponsive-img"
+                                                 src="{% static 'images/top-categorias/gastronomia.jpg' %}" alt="">
+                    </div>
+                    <div class="col s12 m4 no-padding">
+
+                        <img class="col s12 esponsive-img" src="{% static 'images/top-categorias/festival.jpg' %}"
+                             alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
