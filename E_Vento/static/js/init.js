@@ -1,35 +1,101 @@
-(function($){
-  $(function(){
+(function ($) {
+    $(function () {
 
-    $('.sidenav').sidenav();
-    $('.parallax').parallax();
+        $('.sidenav').sidenav();
+        $('.parallax').parallax();
+        $('select').formSelect();
 
-  }); // end of document ready
+
+        $('td#evento-ingresso input').each(function (index) {
+            this.addEventListener('input', function (evt) {
+                if (this.value < 0) {
+                    alert("Valor Inválido!");
+                    this.value = 0;
+                } else {
+                    id = this.id;
+
+                    precoId = 'preco-' + id;
+                    txId = 'tx-' + id;
+                    totId = 'tot-' + id;
+
+                    preco = document.getElementById(precoId);
+                    tx = document.getElementById(txId);
+                    tot = document.getElementById(totId);
+
+                    preco_val = parseFloat(preco.innerText.split(' ')[1]);
+                    tx_val = parseFloat(tx.innerText.split(' ')[1]);
+
+                    console.log(preco_val);
+
+                    console.log(tx_val);
+
+                    tot.innerText = 'R$ ' + ((preco_val + tx_val) * this.value).toFixed(2);
+                }
+            });
+        });
+
+        $('td a').each(function (index) {
+            this.addEventListener('click', function (evt) {
+                let action = this.id.split(' ');
+                $.ajax({
+                    type: "GET",
+                    url: document.URL,
+                    data: {
+                        'DELETE': true,
+                        'csrfmiddlewaretoken': CSRF_TOKEN,
+                        'id': action[1]
+                    }
+                }).fail(function () {
+                    alert("Falha ao remover evento.")
+                }).done(function () {
+                    let tr = $('tr#item-' + action[1])[0];
+                    tr.parentNode.removeChild(tr)
+                });
+            });
+        });
+    }); // end of document ready
 })(jQuery); // end of jQuery name space
 
 
-function topEvents() {
-  divTopEvents = $('div#top-eventos');
-  for (let i = 0; i < 8; i++){
+function buildCard(page, nome, img, desc) {
     newEvent = '<div class="col s12 m3">\n' +
         '                    <div class="card medium">\n' +
         '                        <div class="card-image">\n' +
-        '                            <img src="static/images/evento_cards/evento1.png">\n' +
+        '                            <img src=' + img + '>\n' +
         '                        </div>\n' +
-        '                        <h5 class="center black-text">Inauguração da Nova Loja</h5>\n' +
+        '                        <h5 class="center black-text">' + nome + '</h5>\n' +
         '                        <div class="card-content">\n' +
-        '                            <p>I am a very simple card. I am good at containing small [...] <a href="#">Leia mais</a></p>\n' +
+        '                            <p>' + desc + ' [...] <a href="' + page + '">Leia mais</a></p>\n' +
         '                            <br>\n' +
         '                            <p style="font-size: 12px;" class="grey-text"> Vitória/ES</p>\n' +
         '                        </div>\n' +
         '                        <div class="card-action">\n' +
         '                            <a class="light-blue-text" href="#">Gratis</a>\n' +
-        '                            <a class="light-blue-text" href="#">Comprar</a>\n' +
+        '                            <a class="light-blue-text" href="' + page + '">Comprar</a>\n' +
         '                        </div>\n' +
         '                    </div>\n' +
         '                </div>';
-    divTopEvents.append(newEvent);
+    return newEvent
+};
 
-  }
+function topEvents(eventData) {
+    divTopEvents = $('div#top-eventos');
+    for (let i = 0; i < eventData.length; i++) {
+        let page = eventData[i]['page'];
+        let nome = eventData[i]['evento']['nome'];
+        let banner = 'static/images/evento_cards/evento1.png';
+        let desc = eventData[i]['evento']['descricao'];
+        newEvent = buildCard(page, nome, banner, desc);
+        divTopEvents.append(newEvent);
+    }
 
-}
+};
+
+function getEvents(id) {
+    eventList = [];
+    $.get('eventos', {id: id}).done(function (data) {
+        console.log(data);
+        eventData = data['value'];
+        topEvents(eventData)
+    }, "json");
+};

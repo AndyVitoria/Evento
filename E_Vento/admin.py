@@ -80,7 +80,7 @@ admin.site.register(Logradouro, LogradouroAdmin)
 
 admin.site.register(Endereco, EnderecoAdmin)
 
-#admin.site.register(Usuario, UsuarioAdmin)
+admin.site.register(Usuario, UsuarioAdmin)
 
 admin.site.register(Carrinho, CarrinhoAdmin)
 

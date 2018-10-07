@@ -7,10 +7,10 @@
     <link rel="stylesheet" type="text/css" href="{% static 'materialize/css/materialize.css' %} "
           media="screen,projection">
 </head>
-<body onload="topEvents()">
+<body onload="getEvents(0)">
 <nav class="light-blue" role="navigation">
     <div class="nav-wrapper container">
-        <a style="padding-top: 5px" id="logo-container" href="#" class="brand-logo"><img
+        <a style="padding-top: 5px" id="logo-container" href="{% url 'home' %}" class="brand-logo"><img
                 src="{% static 'images/e-vento_logo.png' %}" alt="E-Vento" height="50px"></a>
         <ul class="right hide-on-med-and-down">
             <li><a href="{% url 'home' %}">Inicio</a></li>
