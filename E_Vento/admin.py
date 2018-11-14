@@ -53,8 +53,15 @@ class IngressoAdmin(admin.ModelAdmin):
     ]
 
 
+class BannerInline(admin.StackedInline):
+    model = Banner
+    extra = 1
+
+
 class EventoAdmin(admin.ModelAdmin):
-    pass
+    inlines = [
+        BannerInline
+    ]
 
 
 class EticketAdmin(admin.ModelAdmin):

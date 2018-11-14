@@ -11,11 +11,20 @@ class Estado(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
 
+    def get_address(self):
+        return self.nome
+
 
 class Municipio(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
     id_estado = models.ForeignKey('Estado', on_delete=models.CASCADE, blank=False)
+
+    def get_estado(self):
+        return self.id_estado
+
+    def get_address(self):
+        return self.nome + ', ' + self.get_estado().get_address()
 
 
 class Bairro(Model):
@@ -23,12 +32,31 @@ class Bairro(Model):
     nome = models.CharField(max_length=200, blank=False)
     id_municipio = models.ForeignKey('Municipio', on_delete=models.CASCADE, blank=False)
 
+    def get_estado(self):
+        return self.id_municipio.get_estado()
+
+    def get_municipio(self):
+        return self.id_municipio
+
+    def get_address(self):
+        return self.nome + ', ' + self.get_municipio().get_address()
 
 class Logradouro(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
     id_bairro = models.ForeignKey('Bairro', on_delete=models.CASCADE, blank=False)
 
+    def get_estado(self):
+        return self.id_bairro.get_estado()
+
+    def get_municipio(self):
+        return self.id_bairro.get_municipio()
+
+    def get_bairro(self):
+        return self.id_bairro
+
+    def get_address(self):
+        return self.nome + ', ' + self.get_bairro().get_address()
 
 class Endereco(Model):
     id = models.AutoField(primary_key=True)
@@ -36,8 +64,27 @@ class Endereco(Model):
     numero = models.PositiveIntegerField(blank=True)
     id_logradouro = models.ForeignKey('Logradouro', on_delete=models.CASCADE, blank=False)
 
+    def get_estado(self):
+        return self.id_logradouro.get_estado()
+
+    def get_municipio(self):
+        return self.id_logradouro.get_municipio()
+
+    def get_bairro(self):
+        return self.id_logradouro.get_bairro()
+
+    def get_logradouro(self):
+        return self.id_logradouro
+
+    def get_address(self):
+        if self.numero is not None:
+            addr = self.get_logradouro().nome + ' ' + self.numero.__str__() + ', ' + self.get_bairro().get_address()
+        else:
+            addr = self.get_logradouro().get_address()
+        return addr
+
     def get_endereco_abreviado(self):
-        return self.id_logradouro.id_bairro.id_municipio.nome + '/' + self.id_logradouro.id_bairro.id_municipio.id_estado.nome
+        return self.get_municipio().nome + '/' + self.get_estado().nome
 
 
 # =============={ Usuários }=============#
@@ -54,6 +101,13 @@ class Carrinho(Model):
     ingressos = models.ManyToManyField('Lote', through='CarrinhoIngresso')
     status = models.BooleanField(default=True)
 
+    def calcular_total(self):
+        carrinho_list = CarrinhoIngresso.objects.filter(id_carrinho=self.id)
+        total = 0
+        for carrinho_item in carrinho_list:
+            total += carrinho_item.total()
+        return total
+
 
 class CarrinhoIngresso(Model):
     id = models.AutoField(primary_key=True)
@@ -62,7 +116,7 @@ class CarrinhoIngresso(Model):
     qtd_ingresso = models.PositiveIntegerField(blank=False, validators=[MinValueValidator(1)])
 
     def total(self):
-        return str(self.id_lote.valor * self.qtd_ingresso)
+        return self.id_lote.valor * self.qtd_ingresso
 
 
 # ============={ Eventos }===============#
@@ -71,24 +125,44 @@ class Categoria(Model):
     nome = models.CharField(max_length=200, blank=False)
 
 
+class Banner(Model):
+    id = models.AutoField(primary_key=True)
+    image_url = models.ImageField(upload_to='media/', default='media/no-img.png')
+    id_evento = models.ForeignKey('Evento', on_delete=models.CASCADE, blank=False)
+
+
+"""
+    Status Evento:
+    E - Em Análise
+    A - Aprovado
+    R - Reprovado
+    O - Ocorrendo
+    F - Finalizado
+"""
 class Evento(Model):
     id = models.AutoField(primary_key=True)
-    status = models.BooleanField(default=True)
+    status = models.CharField(default='E', max_length=1)
     id_promotor = models.ForeignKey('Usuario', on_delete=models.CASCADE, blank=False)
     id_categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE,blank=False)
     nome = models.CharField(max_length=200, blank=False)
     descricao = models.TextField(blank=False)
-    banner = models.FilePathField(blank=True,path=settings.FILE_PATH_FIELD_DIRECTORY) # VERIFICAR O PATH
     id_endereco = models.ForeignKey('Endereco', on_delete=models.CASCADE, blank=False)
-    data_cadastro = models.DateTimeField(blank=False)
-    data_inicio = models.DateTimeField(blank=False)
-    data_fim = models.DateTimeField(blank=False)
+    data_hora_criacao = models.DateTimeField(blank=False)
+    data_inicio_venda = models.DateTimeField(blank=False)
+    data_fim_venda = models.DateTimeField(blank=False)
 
     def __str__(self):
         return self.nome
 
     def get_ingresso(self):
         return Ingresso.objects.filter(id_evento=self.id)
+
+    def get_banners(self):
+        return Banner.objects.filter(id_evento=self.id)
+
+    def get_categoria(self):
+        return self.id_categoria
+
 
 class Ingresso(Model):
     id = models.AutoField(primary_key=True)
@@ -107,7 +181,7 @@ class Ingresso(Model):
     def get_lote(self):
         lote_list = Lote.objects.filter(id_ingresso=self.id).order_by('nome')
         for lote in lote_list:
-            if lote.qtd_vendido < lote.qtd_max:
+            if lote.status():
                 return lote
         return None
 
@@ -120,6 +194,8 @@ class Lote(Model):
     qtd_max = models.PositiveIntegerField(blank=False)
     qtd_vendido = models.PositiveIntegerField(blank=False, default=0)
 
+    def status(self):
+        return self.qtd_vendido < self.qtd_max
 
 # Revisar com a Ju e o Caio
 class Eticket(Model):
@@ -128,6 +204,10 @@ class Eticket(Model):
     status = models.BooleanField(default=True)
     nome = models.CharField(max_length=200, blank=False)
     codigo = models.TextField(blank=False)
+    id_usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE, blank=False)
+    id_ingresso = models.ForeignKey('Ingresso', on_delete=models.CASCADE, blank=False)
+    id_compra = models.ForeignKey('Compra', on_delete=models.CASCADE, blank=False)
+    qr_code = models.ImageField(upload_to='qr_code/', default='media/no-img.png')
 
 
 # ============{ Pagamento }===========
@@ -135,11 +215,23 @@ class FormaPagamento(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
 
-
+"""
+    Status da Compra:
+    A - Aguardando Pagamento
+    P - Pagamento Efetuado com Sucesso
+    N - Pagamento Não Efetuado
+"""
 class Compra(Model):
     id = models.AutoField(primary_key=True)
-    status = models.BooleanField(default=False)
+    status = models.CharField(default='A', max_length=1)
     data_compra = models.DateTimeField(blank=False)
     data_pagamento = models.DateTimeField()
     id_carrinho = models.ForeignKey('Carrinho', on_delete=models.CASCADE, blank=False)
     id_forma_pagamento = models.ForeignKey('FormaPagamento', on_delete=models.CASCADE, blank=False)
+
+    def get_forma_pagamento(self):
+        return self.id_forma_pagamento
+
+    # A implementar
+    def gerar_eticket(self):
+        pass
