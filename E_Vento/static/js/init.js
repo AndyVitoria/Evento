@@ -53,6 +53,8 @@
                 });
             });
         });
+
+        setMoveActionEvento();
     }); // end of document ready
 })(jQuery); // end of jQuery name space
 
@@ -76,7 +78,7 @@ function buildCard(page, nome, img, desc) {
         '                    </div>\n' +
         '                </div>';
     return newEvent
-};
+}
 
 function topEvents(eventData) {
     divTopEvents = $('div#top-eventos');
@@ -89,7 +91,7 @@ function topEvents(eventData) {
         divTopEvents.append(newEvent);
     }
 
-};
+}
 
 function getEvents(id) {
     eventList = [];
@@ -98,4 +100,36 @@ function getEvents(id) {
         eventData = data['value'];
         topEvents(eventData)
     }, "json");
-};
+}
+
+function showEventoCard(id) {
+    $('div.novo-evento').each( function() {
+        if (this.id === id) {
+          $(this).removeClass('hide');
+          $(this).addClass('show');
+        }
+        else{
+          $(this).removeClass('show');
+          $(this).addClass('hide');
+        }
+    });
+    $('ul#etapas').children().each( function() {
+        if (this.id === id) {
+            $(this).removeClass('light-blue-text');
+            $(this).addClass(['light-blue', 'white-text']);
+        } else {
+            $(this).removeClass(['light-blue', 'white-text']);
+            $(this).addClass('light-blue-text');
+        }
+    })
+
+}
+
+function setMoveActionEvento(){
+    $('div.novo-evento div div button').each(function (index) {
+        this.addEventListener('click', function(evt){
+            showEventoCard(this.id)
+        })
+    });
+    showEventoCard('info');
+}

@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.http import HttpResponse, JsonResponse
-from .forms import UserForm, EnderecoForm
+from .forms import UserForm, EnderecoForm, LoginForm, EventoForm
 from .models import Evento, Lote, Usuario, Carrinho, CarrinhoIngresso
 import json
 from django.core import serializers
-from EVento.settings import ALLOWED_HOSTS
+from django.contrib.auth import authenticate, login, logout
+
 
 # Create your views here.
 def home(request):
@@ -14,6 +15,8 @@ def home(request):
 
 
 def criar_conta(request):
+    if request.user.is_authenticated:
+        return redirect(home)
     msg = ''
     # Carregamento do template
     temp = loader.get_template('evento_site/pages/user_register.html')
@@ -27,24 +30,24 @@ def criar_conta(request):
             user_forms.format()
         else:
             msg = user_forms.errors
-        None -1
+        None - 1
     else:
         user_forms = UserForm()
         user_forms.format()
 
     end_forms = EnderecoForm()
-    test = json.dumps({1:1,2:2})
+    test = json.dumps({1: 1, 2: 2})
     return HttpResponse(temp.render({
         'message': msg,
         'user_forms': user_forms,
         'endereco_forms': end_forms,
         'test': test
-        }, request))
+    }, request))
 
 
 def build_evento(evento):
     evento_serialized = json.loads(serializers.serialize('json', [evento, ], fields=(
-    'status', 'nome', 'banner', 'descricao', 'data_inicio', 'data_fim',)))
+        'status', 'nome', 'banner', 'descricao', 'data_inicio', 'data_fim',)))
     temp_evento_dict = evento_serialized[0]['fields']
     temp_evento_dict['id'] = evento_serialized[0]['pk']
     temp_evento_dict['categoria'] = evento.id_categoria.nome
@@ -79,7 +82,7 @@ def build_evento_list(eventos):
     for evento in eventos:
         evento_dict = dict()
 
-        evento_dict['page'] ='evento/' + str(evento.id)
+        evento_dict['page'] = 'evento/' + str(evento.id)
 
         # Recuperando informações sobre o evento e inserindo-as em um dicionario
         evento_dict['evento'] = build_evento(evento)
@@ -107,7 +110,7 @@ def get_eventos(request):
     if request.method == 'GET':
         interval = 20
         id_get = int(request.GET['id'])
-        eventos = Evento.objects.filter(status=True)[interval * id_get: (id_get+1) * interval]
+        eventos = Evento.objects.filter(status=True)[interval * id_get: (id_get + 1) * interval]
 
         evento_json = build_evento_list(eventos)
 
@@ -144,7 +147,7 @@ def get_evento(requets, id):
 
 def get_carrinho(request):
     if request.method == "GET" or request.method == "DELETE":
-        if 'DELETE' in request.GET.keys(): #request.method == 'DELETE':
+        if 'DELETE' in request.GET.keys():  # request.method == 'DELETE':
             id = request.GET['id']
             carrinho = CarrinhoIngresso.objects.filter(id=id).first()
             if carrinho is not None:
@@ -158,3 +161,64 @@ def get_carrinho(request):
         carrinho_ingresso = CarrinhoIngresso.objects.filter(id_carrinho=carrinho.id)
         temp = loader.get_template('evento_site/pages/carrinho.html')
         return HttpResponse(temp.render({'carrinho': carrinho, 'carrinho_ingresso': carrinho_ingresso}))
+
+
+def error_msg():
+    msg = {'class': 'red-text', 'text': 'Usuário ou senha inválidos!'}
+    return msg
+
+
+def disabled_msg():
+    msg = {'class': 'yellow-text', 'text': 'Seu usuário foi desativado. Por favor contacte o administrador.'}
+    return msg
+
+
+def login_evento(request):
+    if request.user is not None and request.user.is_authenticated:
+        return redirect(home)
+
+    loginForm = LoginForm()
+    temp = loader.get_template('evento_site/pages/login.html')
+    msg = {'class': '', 'text': ''}
+    if request.method == 'POST':
+        username_request = request.POST.get('user')
+        password_request = request.POST.get('password')
+        user = authenticate(username=username_request, password=password_request)
+        if user is None:
+            msg = error_msg()
+        elif user.is_active:
+            login(request, user)
+            return redirect(home)
+        else:
+            msg = disabled_msg()
+            """
+            if user is not None and user.check_password(password_request):
+
+            else:
+                msg = error_msg()
+
+        else:
+            msg = error_msg()
+            """
+
+    return HttpResponse(temp.render({
+        'login': loginForm,
+        'msg': msg
+    }, request))
+
+
+def logout_evento(request):
+    logout(request)
+    return redirect(login_evento)
+
+
+def criar_evento(request):
+    if not request.user.is_authenticated:
+        return redirect(login_evento)
+
+    evento = EventoForm()
+    evento.format()
+    temp = loader.get_template('evento_site/pages/evento/criar_evento.html')
+    return HttpResponse(temp.render({
+        'evento': evento
+    }, request))

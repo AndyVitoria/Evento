@@ -1,0 +1,93 @@
+{% extends 'evento_site/pages/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m4">
+                <ul id="etapas" class="collection with-header">
+                    <li class="collection-header light-blue white-text center">Etapas</li>
+                    <li id="info" class="novo-evento-etapa collection-item light-blue white-text">Informações do
+                        Evento
+                    </li>
+                    <li id="banner" class="novo-evento-etapa collection-item light-blue-text">Imagens do Evento</li>
+                    <li id="endereco" class="novo-evento-etapa collection-item light-blue-text">Endereço</li>
+                    <li id="ingresso" class="novo-evento-etapa collection-item light-blue-text">Ingressos</li>
+                    <li id="confirm" class="novo-evento-etapa collection-item light-blue-text">Confirmação</li>
+                    <li id="finish" class="novo-evento-etapa collection-item light-blue-text">Criando Evento</li>
+                </ul>
+            </div>
+            <div class="col s12 m8">
+                <div id="info" class="novo-evento card show">
+                    <div class="card-content">
+                        <span class="card-title">Informações do Evento</span>
+                        {{ evento.as_p }}
+                        <div class="row">
+                            <button id="banner" class="btn light-blue white-text right"><i class="material-icons">arrow_forward</i>
+                            </button>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="banner" class="novo-evento card hide">
+                    <div class="card-content">
+                        <span class="card-title">Imagens do Evento</span>
+                        <div class="row">
+                            <button id="info" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
+                            </button>
+                            <button id="endereco" class="btn light-blue white-text right"><i class="material-icons">arrow_forward</i>
+                            </button>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="endereco" class="novo-evento card hide">
+                    <div class="card-content">
+                        <span class="card-title">Endereço</span>
+                        <div class="row">
+                            <button id="banner" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
+                            </button>
+                            <button id="ingresso" class="btn light-blue white-text right"><i
+                                    class="material-icons">arrow_forward</i>
+                            </button>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ingresso" class="novo-evento card hide">
+                    <div class="card-content">
+                        <span class="card-title">Ingresso</span>
+                        <div class="row">
+                            <button id="endereco" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
+                            </button>
+                            <button id="confirm" class="btn light-blue white-text right"><i
+                                    class="material-icons">arrow_forward</i>
+                            </button>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="confirm" class="novo-evento card hide">
+                    <div class="card-content">
+                       <span class="card-title">Confirmação</span>
+                        <div class="row">
+                            <button id="ingresso" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
+                            </button>
+                            <button id="finish" class="btn light-blue white-text right">Criar Evento
+                            </button>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+                <div id="finish" class="novo-evento card hide">
+                    <div class="card-content">
+                        <span class="card-title">Criando o Evento</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
