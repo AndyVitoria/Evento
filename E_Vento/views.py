@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.http import HttpResponse, JsonResponse
-from .forms import UserForm, EnderecoForm, LoginForm, EventoForm
+from .forms import *
 from .models import Evento, Lote, Usuario, Carrinho, CarrinhoIngresso
 import json
 from django.core import serializers
@@ -216,9 +216,30 @@ def criar_evento(request):
     if not request.user.is_authenticated:
         return redirect(login_evento)
 
+    if request.method == 'POST':
+        a = request._post
+        1 + None
+
     evento = EventoForm()
     evento.format()
+
+    endereco = EnderecoForm()
+
+    ingresso = IngressoForm()
+
+    lote = LoteForm()
+
+    categoria_list = Categoria.objects.all()
+    categoria_dict = {}
+    for cat in categoria_list:
+        categoria_dict[cat.nome] = 'null'
+    categoria = json.dumps(categoria_dict)
+
     temp = loader.get_template('evento_site/pages/evento/criar_evento.html')
     return HttpResponse(temp.render({
-        'evento': evento
+        'evento': evento,
+        'endereco': endereco,
+        'ingresso': ingresso,
+        'lote': lote,
+        'categoria': categoria,
     }, request))

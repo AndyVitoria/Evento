@@ -44,6 +44,7 @@ class Bairro(Model):
 class Logradouro(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
+    cep = models.CharField(max_length=8, blank=False, validators=[RegexValidator(regex='\d\d\d\d\d\d\d\d')])
     id_bairro = models.ForeignKey('Bairro', on_delete=models.CASCADE, blank=False)
 
     def get_estado(self):
@@ -124,6 +125,9 @@ class Categoria(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
 
+    def __str__(self):
+        return self.nome
+
 
 class Banner(Model):
     id = models.AutoField(primary_key=True)
@@ -143,13 +147,15 @@ class Evento(Model):
     id = models.AutoField(primary_key=True)
     status = models.CharField(default='E', max_length=1)
     id_promotor = models.ForeignKey('Usuario', on_delete=models.CASCADE, blank=False)
-    id_categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE,blank=False)
+    id_categoria = models.ManyToManyField('Categoria',blank=False)
     nome = models.CharField(max_length=200, blank=False)
     descricao = models.TextField(blank=False)
-    id_endereco = models.ForeignKey('Endereco', on_delete=models.CASCADE, blank=False)
+    id_endereco = models.ForeignKey('Endereco', on_delete=models.CASCADE, blank=True)
     data_hora_criacao = models.DateTimeField(blank=False)
-    data_inicio_venda = models.DateTimeField(blank=False)
-    data_fim_venda = models.DateTimeField(blank=False)
+    data_inicio_venda = models.DateField(blank=False)
+    hora_inicio_venda = models.TimeField(blank=False)
+    data_fim_venda = models.DateField(blank=False)
+    hora_fim_venda = models.TimeField(blank=False)
 
     def __str__(self):
         return self.nome
@@ -167,7 +173,7 @@ class Evento(Model):
 class Ingresso(Model):
     id = models.AutoField(primary_key=True)
     id_evento = models.ForeignKey('Evento', on_delete=models.CASCADE, blank=False)
-    tipo = models.CharField(max_length=200, blank=False)
+    tipo = models.CharField(max_length=200, blank=False, verbose_name='Ingresso')
 
     def __str__(self):
         return self.id_evento.nome + ' - ' + self.tipo
@@ -192,7 +198,10 @@ class Lote(Model):
     nome = models.CharField(max_length=200)
     valor = models.FloatField(blank=False, validators=[MinValueValidator(0.0)]) # Adicionar verificação de valor negativo
     qtd_max = models.PositiveIntegerField(blank=False)
+    data_inicio_venda = models.DateField()
+    data_fim_venda = models.DateField()
     qtd_vendido = models.PositiveIntegerField(blank=False, default=0)
+
 
     def status(self):
         return self.qtd_vendido < self.qtd_max

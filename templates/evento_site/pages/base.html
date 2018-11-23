@@ -38,7 +38,6 @@
 </nav>
 
 
-
 {% block content %}
 {% endblock %}
 
@@ -85,5 +84,8 @@
 <script src="{% static 'js/jquery/jquery-3.3.1.min.js' %}"></script>
 <script src="{% static 'materialize/js/bin/materialize.min.js' %}"></script>
 <script src="{% static 'js/init.js' %}"></script>
+{% if request.get_full_path == '/evento/novo/' %}
+    <script src='{% static 'js/evento.js' %}'></script>
+{% endif %}
 </body>
 </html>

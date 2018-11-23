@@ -3,7 +3,7 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col s12 m4">
+            <div class="col s12 m3">
                 <ul id="etapas" class="collection with-header">
                     <li class="collection-header light-blue white-text center">Etapas</li>
                     <li id="info" class="novo-evento-etapa collection-item light-blue white-text">Informações do
@@ -16,78 +16,140 @@
                     <li id="finish" class="novo-evento-etapa collection-item light-blue-text">Criando Evento</li>
                 </ul>
             </div>
-            <div class="col s12 m8">
-                <div id="info" class="novo-evento card show">
-                    <div class="card-content">
-                        <span class="card-title">Informações do Evento</span>
-                        {{ evento.as_p }}
-                        <div class="row">
-                            <button id="banner" class="btn light-blue white-text right"><i class="material-icons">arrow_forward</i>
-                            </button>
-                            <br>
-                        </div>
-                    </div>
-                </div>
+            <div class="col s12 m9">
+                <form method="POST">{% csrf_token %}
+                    <div id="info" class="novo-evento card show">
+                        <div class="card-content">
+                            <span class="card-title">Informações do Evento</span>
 
-                <div id="banner" class="novo-evento card hide">
-                    <div class="card-content">
-                        <span class="card-title">Imagens do Evento</span>
-                        <div class="row">
-                            <button id="info" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
-                            </button>
-                            <button id="endereco" class="btn light-blue white-text right"><i class="material-icons">arrow_forward</i>
-                            </button>
-                            <br>
+                            <script>var categorias = {{ categoria|safe }};</script>
+                            <div class="chips chips-autocomplete">
+                                <input id="evento#categoria" class="custom-class">
+                            </div>
+                            {{ evento.as_p }}
+                            <div class="row">
+                                <button id="banner" class="move btn light-blue white-text right"><i
+                                        class="material-icons">arrow_forward</i>
+                                </button>
+                                <br>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="endereco" class="novo-evento card hide">
-                    <div class="card-content">
-                        <span class="card-title">Endereço</span>
-                        <div class="row">
-                            <button id="banner" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
-                            </button>
-                            <button id="ingresso" class="btn light-blue white-text right"><i
-                                    class="material-icons">arrow_forward</i>
-                            </button>
-                            <br>
+                    <div id="banner" class="novo-evento card hide">
+                        <div class="card-content">
+                            <span class="card-title">Imagens do Evento</span>
+                            <div id="banner-img" class="row">
+                                <div class="file-field input-field">
+                                    <div class="btn light-blue">
+                                        <span><i class="material-icons">image</i></span>
+                                        <input type="file" id="banner" accept="image/*" multiple>
+                                    </div>
+                                    <div class="file-path-wrapper">
+                                        <input class="file-path validate" type="text"
+                                               placeholder="Adicione uma ou mais imagens.">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <button id="info" class="move btn light-blue white-text left"><i class="material-icons">arrow_back</i>
+                                </button>
+                                <button id="endereco" class="move btn light-blue white-text right"><i
+                                        class="material-icons">arrow_forward</i>
+                                </button>
+                                <br>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="ingresso" class="novo-evento card hide">
-                    <div class="card-content">
-                        <span class="card-title">Ingresso</span>
-                        <div class="row">
-                            <button id="endereco" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
-                            </button>
-                            <button id="confirm" class="btn light-blue white-text right"><i
-                                    class="material-icons">arrow_forward</i>
-                            </button>
-                            <br>
+                    <div id="endereco" class="novo-evento card hide">
+                        <div class="card-content">
+                            <span class="card-title">Endereço</span>
+                            {{ endereco.as_p }}
+                            <div class="row">
+                                <button id="banner" class="move btn light-blue white-text left"><i
+                                        class="material-icons">arrow_back</i>
+                                </button>
+                                <button id="ingresso" class="move btn light-blue white-text right"><i
+                                        class="material-icons">arrow_forward</i>
+                                </button>
+                                <br>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="confirm" class="novo-evento card hide">
-                    <div class="card-content">
-                       <span class="card-title">Confirmação</span>
-                        <div class="row">
-                            <button id="ingresso" class="btn light-blue white-text left"><i class="material-icons">arrow_back</i>
-                            </button>
-                            <button id="finish" class="btn light-blue white-text right">Criar Evento
-                            </button>
-                            <br>
+                    <div id="ingresso" class="novo-evento card hide">
+                        <div class="card-content">
+                            <span class="card-title">Ingressos</span>
+                            <div id="ingressozone">
+                                <div class="card" id="ingresso-card">
+                                    <div class="card-content">
+                                        <h6 class="center-align">Ingresso</h6>
+                                        <div class="divider grey" style="margin-bottom: 10px"></div>
+                                        <div class="row" id="ingresso-row">
+                                            {{ ingresso.as_p }}
+
+                                            <h6 class="center-align">Lotes</h6>
+
+                                            <div id="ingresso-card-lotezone">
+                                                <div id="lote-card" class="card">
+                                                    <div class="card-content">
+                                                        <div id="lote-row" class="row">
+                                                            {{ lote.as_p }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button id="ingresso-card"
+                                                    class="btn light-blue white-text right add-lote"><i
+                                                    class="material-icons">add</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <button id="add-ingresso" onclick="addIngresso()"
+                                        class="btn light-blue white-text right"><i
+                                        class="material-icons">add</i>
+                                </button>
+                            </div>
+                            <div class="row">
+                                <button id="endereco" class="move btn light-blue white-text left"><i
+                                        class="material-icons">arrow_back</i>
+                                </button>
+                                <button id="confirm" class="move btn light-blue white-text right"><i
+                                        class="material-icons">arrow_forward</i>
+                                </button>
+                                <br>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div id="finish" class="novo-evento card hide">
-                    <div class="card-content">
-                        <span class="card-title">Criando o Evento</span>
+
+                    <div id="confirm" class="novo-evento card hide">
+                        <div class="card-content">
+                            <span class="card-title">Confirmação</span>
+
+                            <div class="row">
+                                <div class="col s12 center">
+                                    <button type="submit" id="finish" class="btn light-blue white-text center">Criar Evento
+                                    </button>
+                                    <br>
+                                </div>
+                                <button id="ingresso" class="move btn light-blue white-text left"><i
+                                        class="material-icons">arrow_back</i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    <div id="finish" class="novo-evento card hide">
+                        <div class="card-content">
+                            <span class="card-title">Criando o Evento</span>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
 {% endblock %}

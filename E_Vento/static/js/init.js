@@ -5,7 +5,6 @@
         $('.parallax').parallax();
         $('select').formSelect();
 
-
         $('td#evento-ingresso input').each(function (index) {
             this.addEventListener('input', function (evt) {
                 if (this.value < 0) {
@@ -54,7 +53,6 @@
             });
         });
 
-        setMoveActionEvento();
     }); // end of document ready
 })(jQuery); // end of jQuery name space
 
@@ -103,17 +101,17 @@ function getEvents(id) {
 }
 
 function showEventoCard(id) {
-    $('div.novo-evento').each( function() {
+    $('div.novo-evento').each(function () {
         if (this.id === id) {
-          $(this).removeClass('hide');
-          $(this).addClass('show');
+            $(this).removeClass('hide');
+            $(this).addClass('show');
         }
-        else{
-          $(this).removeClass('show');
-          $(this).addClass('hide');
+        else {
+            $(this).removeClass('show');
+            $(this).addClass('hide');
         }
     });
-    $('ul#etapas').children().each( function() {
+    $('ul#etapas').children().each(function () {
         if (this.id === id) {
             $(this).removeClass('light-blue-text');
             $(this).addClass(['light-blue', 'white-text']);
@@ -125,11 +123,18 @@ function showEventoCard(id) {
 
 }
 
-function setMoveActionEvento(){
-    $('div.novo-evento div div button').each(function (index) {
-        this.addEventListener('click', function(evt){
+function setMoveActionEvento() {
+    $('div.novo-evento div div button.move').each(function (index) {
+        this.addEventListener('click', function (evt) {
             showEventoCard(this.id)
         })
     });
+    $('li.novo-evento-etapa').each(function (index) {
+        this.addEventListener('click', function (evt) {
+            showEventoCard(this.id)
+        })
+    });
+
     showEventoCard('info');
 }
+
