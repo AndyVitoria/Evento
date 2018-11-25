@@ -1,5 +1,10 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
+
 from .models import *
+from django.core.exceptions import ObjectDoesNotExist
+
+from nested_admin.nested import NestedModelAdmin, NestedStackedInline, NestedTabularInline
 
 
 class EstadoAdmin(admin.ModelAdmin):
@@ -53,15 +58,60 @@ class IngressoAdmin(admin.ModelAdmin):
     ]
 
 
+class BannerInline(NestedStackedInline):
+    model = Banner
+    extra = 0
+
+
+class NestedLoteInline(NestedTabularInline):
+    model = Lote
+    extra = 0
+
+
+class NestedIngressoInline(NestedStackedInline):
+    model = Ingresso
+    inlines = [NestedLoteInline]
+    extra = 0
+
+
+class EventoAdmin(NestedModelAdmin):
+    inlines = [
+        NestedIngressoInline,
+        BannerInline,
+    ]
+    filter_horizontal = ['id_categoria']
+    exclude = ['id_promotor']
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return Evento.objects.all()
+        else:
+            return Evento.objects.filter(id_promotor=request.user)
+
+    def save_model(self, request, obj, form, change):
+        try:
+            if obj.id_promotor is None:
+                obj.id_promotor = request.user
+        except ObjectDoesNotExist:
+            obj.id_promotor = request.user
+        super().save_model(request, obj, form, change)
+
+'''
 class BannerInline(admin.StackedInline):
     model = Banner
     extra = 1
-
 
 class EventoAdmin(admin.ModelAdmin):
     inlines = [
         BannerInline
     ]
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return Evento.objects.all()
+        else:
+            return Evento.objects.filter(id_promotor=request.user)
+'''
 
 
 class EticketAdmin(admin.ModelAdmin):
@@ -74,7 +124,6 @@ class FormaPagamentoAdmin(admin.ModelAdmin):
 
 class CompraAdmin(admin.ModelAdmin):
     pass
-
 
 
 admin.site.register(Estado, EstadoAdmin)
@@ -97,7 +146,7 @@ admin.site.register(Categoria, CategoriaAdmin)
 
 admin.site.register(Evento, EventoAdmin)
 
-admin.site.register(Ingresso, IngressoAdmin)
+#admin.site.register(Ingresso, IngressoAdmin)
 
 #admin.site.register(Lote, LoteAdmin)
 
@@ -106,4 +155,3 @@ admin.site.register(Eticket, EticketAdmin)
 admin.site.register(FormaPagamento, FormaPagamentoAdmin)
 
 admin.site.register(Compra, CompraAdmin)
-

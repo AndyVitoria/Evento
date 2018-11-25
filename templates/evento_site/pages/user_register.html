@@ -1,20 +1,33 @@
 {% extends 'evento_site/pages/base.html' %}
 {% load static %}
 {% block content %}
+    <style>
+        .errorlist {
+            color: red;
+            text-align: left;
+            font-size: 10px;
+        }
+    </style>
 
-    <div class="container fullscreen">
-        <div class="card">
-            <div class="card-title">
-                <h3 class="light-blue-text">Cadastro</h3>
-            </div>
-            <div class="card-content">
-                <form method="POST">{% csrf_token %}
-                    {{ user_forms }}
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m8">
+                <div class="card">
+                    <div class="card-title">
+                        <h4 class="light-blue-text center">Cadastro</h4>
+                    </div>
+                    <div class="card-content">
+                        <form method="POST">{% csrf_token %}
+                            {{ user_forms }}
+                            <!--
                     <h5 class="light-blue-text">Endereço:</h5>
                     {{ endereco_forms }}
-                <button class="btn right light-blue" type="submit">Criar Conta</button>
-                    <br>
-                </form>
+                    -->
+                            <button class="btn right light-blue" type="submit">Criar Conta</button>
+                            <br>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -21,4 +21,6 @@ from E_Vento import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('E_Vento.urls')),
+
+    path('nested_admin/', include('nested_admin.urls')),
 ]

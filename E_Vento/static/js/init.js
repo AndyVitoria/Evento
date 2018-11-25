@@ -24,10 +24,6 @@
                     preco_val = parseFloat(preco.innerText.split(' ')[1]);
                     tx_val = parseFloat(tx.innerText.split(' ')[1]);
 
-                    console.log(preco_val);
-
-                    console.log(tx_val);
-
                     tot.innerText = 'R$ ' + ((preco_val + tx_val) * this.value).toFixed(2);
                 }
             });

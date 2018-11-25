@@ -20,6 +20,8 @@
                         {% for item in carrinho_ingresso %}
                             <tr id="item-{{ item.id }}">
                                 <td class="center">
+                                    {{ item.id_lote.id_ingresso.id_evento.nome }} <br>
+                                    {{ item.id_lote.id_ingresso.tipo }} -
                                     {{ item.id_lote.nome }}
                                 </td>
                                 <td class="center" id="preco-{{ item.id }}">

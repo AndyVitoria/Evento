@@ -57,6 +57,7 @@ class EventoForm(ModelForm):
         #self.fields['data_fim_venda'].widget.input_type = 'date'
         pass
 
+
 class IngressoForm(ModelForm):
     class Meta:
         model = Ingresso

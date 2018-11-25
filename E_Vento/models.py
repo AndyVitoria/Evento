@@ -1,15 +1,29 @@
+import os
+from django.utils.text import slugify
+
 from django.db import models
 from django.db.models import Model
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.validators import MinValueValidator, RegexValidator
+from django.utils import timezone
 
+def upload_to(instance, filename):
+    filename_base, filename_ext = os.path.splitext(filename)
+    return "media/{evento}/{filename}{extension}".format(
+        evento=slugify(instance.id_evento.id),
+        filename=slugify(filename_base),
+        extension=filename_ext.lower(),
+    )
 
 # ========={ Endereço }========== #
 
 class Estado(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
+
+    def __str__(self):
+        return self.get_address()
 
     def get_address(self):
         return self.nome
@@ -19,6 +33,9 @@ class Municipio(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
     id_estado = models.ForeignKey('Estado', on_delete=models.CASCADE, blank=False)
+
+    def __str__(self):
+        return self.get_address()
 
     def get_estado(self):
         return self.id_estado
@@ -31,6 +48,9 @@ class Bairro(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
     id_municipio = models.ForeignKey('Municipio', on_delete=models.CASCADE, blank=False)
+
+    def __str__(self):
+        return self.get_address()
 
     def get_estado(self):
         return self.id_municipio.get_estado()
@@ -46,6 +66,9 @@ class Logradouro(Model):
     nome = models.CharField(max_length=200, blank=False)
     cep = models.CharField(max_length=8, blank=False, validators=[RegexValidator(regex='\d\d\d\d\d\d\d\d')])
     id_bairro = models.ForeignKey('Bairro', on_delete=models.CASCADE, blank=False)
+
+    def __str__(self):
+        return self.get_address()
 
     def get_estado(self):
         return self.id_bairro.get_estado()
@@ -64,6 +87,9 @@ class Endereco(Model):
     complemento = models.CharField(max_length=200, blank=True)
     numero = models.PositiveIntegerField(blank=True)
     id_logradouro = models.ForeignKey('Logradouro', on_delete=models.CASCADE, blank=False)
+
+    def __str__(self):
+        return self.get_address()
 
     def get_estado(self):
         return self.id_logradouro.get_estado()
@@ -90,7 +116,7 @@ class Endereco(Model):
 
 # =============={ Usuários }=============#
 class Usuario(User):
-    cpf = models.CharField(max_length=11 ,blank=False, validators=[RegexValidator(regex='[\d]+')]) # Verificar se é possivel usar o Regex
+    cpf = models.CharField(max_length=11,blank=False, validators=[RegexValidator(regex='[\d]+')]) # Verificar se é possivel usar o Regex
     data_nasc = models.DateField(verbose_name='Data de Nascimento', blank=False)
     genero = models.CharField(max_length=5, blank=False, choices=(('M', 'Masculino'), ('F', 'Feminino')))
     id_endereco = models.ForeignKey('Endereco', on_delete=models.CASCADE, blank=True)
@@ -131,7 +157,8 @@ class Categoria(Model):
 
 class Banner(Model):
     id = models.AutoField(primary_key=True)
-    image_url = models.ImageField(upload_to='media/', default='media/no-img.png')
+    # image_url = models.ImageField(upload_to='media/', default='media/no-img.png')
+    image_url = models.ImageField(upload_to=upload_to, default='media/no-img.png')
     id_evento = models.ForeignKey('Evento', on_delete=models.CASCADE, blank=False)
 
 
@@ -145,17 +172,17 @@ class Banner(Model):
 """
 class Evento(Model):
     id = models.AutoField(primary_key=True)
-    status = models.CharField(default='E', max_length=1)
-    id_promotor = models.ForeignKey('Usuario', on_delete=models.CASCADE, blank=False)
-    id_categoria = models.ManyToManyField('Categoria',blank=False)
+    status = models.CharField(default='E', max_length=1, editable=False)
+    id_promotor = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    id_categoria = models.ManyToManyField('Categoria',blank=False, verbose_name='Categorias')
     nome = models.CharField(max_length=200, blank=False)
-    descricao = models.TextField(blank=False)
-    id_endereco = models.ForeignKey('Endereco', on_delete=models.CASCADE, blank=True)
-    data_hora_criacao = models.DateTimeField(blank=False)
-    data_inicio_venda = models.DateField(blank=False)
-    hora_inicio_venda = models.TimeField(blank=False)
-    data_fim_venda = models.DateField(blank=False)
-    hora_fim_venda = models.TimeField(blank=False)
+    descricao = models.TextField(blank=False, verbose_name='Descrição')
+    id_endereco = models.ForeignKey('Endereco', on_delete=models.CASCADE, blank=True, verbose_name='Endereço')
+    data_hora_criacao = models.DateTimeField(auto_now_add=True, editable=False)
+    data_inicio_venda = models.DateField(blank=False, verbose_name='Inicio das vendas', default=timezone.now())
+    hora_inicio_venda = models.TimeField(blank=False, verbose_name='Inicio das vendas', default=timezone.now())
+    data_fim_venda = models.DateField(blank=False, verbose_name='Fim das vendas', default=timezone.now())
+    hora_fim_venda = models.TimeField(blank=False, verbose_name='Fim das vendas', default=timezone.now())
 
     def __str__(self):
         return self.nome
@@ -173,7 +200,7 @@ class Evento(Model):
 class Ingresso(Model):
     id = models.AutoField(primary_key=True)
     id_evento = models.ForeignKey('Evento', on_delete=models.CASCADE, blank=False)
-    tipo = models.CharField(max_length=200, blank=False, verbose_name='Ingresso')
+    tipo = models.CharField(max_length=200, blank=False, verbose_name='Tipo de ingresso')
 
     def __str__(self):
         return self.id_evento.nome + ' - ' + self.tipo
@@ -195,13 +222,17 @@ class Ingresso(Model):
 class Lote(Model):
     id = models.AutoField(primary_key=True)
     id_ingresso = models.ForeignKey('Ingresso', on_delete=models.CASCADE, blank=False)
-    nome = models.CharField(max_length=200)
+    nome = models.CharField(max_length=200, verbose_name='Nome do Lote')
     valor = models.FloatField(blank=False, validators=[MinValueValidator(0.0)]) # Adicionar verificação de valor negativo
-    qtd_max = models.PositiveIntegerField(blank=False)
-    data_inicio_venda = models.DateField()
-    data_fim_venda = models.DateField()
+    qtd_max = models.PositiveIntegerField(blank=False, verbose_name='Quantidade')
+    data_inicio_venda = models.DateField(blank=False, verbose_name='Inicio das vendas', default=timezone.now())
+    hora_inicio_venda = models.TimeField(blank=False, verbose_name='Inicio das vendas', default=timezone.now())
+    data_fim_venda = models.DateField(blank=False, verbose_name='Fim das vendas', default=timezone.now())
+    hora_fim_venda = models.TimeField(blank=False, verbose_name='Fim das vendas', default=timezone.now())
     qtd_vendido = models.PositiveIntegerField(blank=False, default=0)
 
+    def __str__(self):
+        return self.id_ingresso.id_evento.__str__() + ' | ' + self.id_ingresso.__str__() + ' - ' + self.nome
 
     def status(self):
         return self.qtd_vendido < self.qtd_max
@@ -224,6 +255,9 @@ class FormaPagamento(Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200, blank=False)
 
+    def __str__(self):
+        return self.nome
+
 """
     Status da Compra:
     A - Aguardando Pagamento
@@ -237,6 +271,9 @@ class Compra(Model):
     data_pagamento = models.DateTimeField()
     id_carrinho = models.ForeignKey('Carrinho', on_delete=models.CASCADE, blank=False)
     id_forma_pagamento = models.ForeignKey('FormaPagamento', on_delete=models.CASCADE, blank=False)
+
+    def __str__(self):
+        return self.id_carrinho.id_user.__str__() + ' - ' + self.data_compra.__str__()
 
     def get_forma_pagamento(self):
         return self.id_forma_pagamento

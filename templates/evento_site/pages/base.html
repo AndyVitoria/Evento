@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'materialize/css/materialize.css' %} "
           media="screen,projection">
 </head>
-<body onload="getEvents(0)">
+<body {% if request.get_full_path == '/' %} onload="getEvents(0)" {% endif %}>
 <nav class="light-blue" role="navigation">
     <div class="nav-wrapper container">
         <a style="padding-top: 5px" id="logo-container" href="{% url 'home' %}" class="brand-logo"><img
@@ -16,9 +16,10 @@
             <li><a href="{% url 'home' %}">Inicio</a></li>
             <li><a href="#">Sobre</a></li>
             <li><a href="#">Eventos</a></li>
-            <li><a href="{% url 'criar_evento' %}">Criar Evento</a></li>
-            {% if user.is_authenticated  %}
-                <li><a href="#">Minha Conta</a></li>
+            <li><a href="{% url 'admin:index' %}E_Vento/evento/add/">Criar Evento</a></li>
+            <li><a href="{% url 'carrinho' %}">Carrinho</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'admin:index' %}">Minha Conta</a></li>
                 <li><a href="{% url 'logout' %}">Logout</a></li>
             {% else %}
                 <li><a href="{% url 'login' %}">Login</a></li>
@@ -30,8 +31,15 @@
             <li><a href="{% url 'home' %}">Inicio</a></li>
             <li><a href="#">Sobre</a></li>
             <li><a href="#">Eventos</a></li>
-            <li><a href="{% url 'criar_evento' %}">Criar Evento</a></li>
-            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'admin:index' %}E_Vento/evento/add/">Criar Evento</a></li>
+            <li><a href="{% url 'carrinho' %}">Carrinho</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'admin:index' %}">Minha Conta</a></li>
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+
+            {% endif %}
         </ul>
         <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
     </div>
@@ -85,6 +93,9 @@
 <script src="{% static 'materialize/js/bin/materialize.min.js' %}"></script>
 <script src="{% static 'js/init.js' %}"></script>
 {% if request.get_full_path == '/evento/novo/' %}
+    <script src='{% static 'js/evento.js' %}'></script>
+{% endif %}
+{% if request.get_full_path == '/carrinho/' %}
     <script src='{% static 'js/evento.js' %}'></script>
 {% endif %}
 </body>

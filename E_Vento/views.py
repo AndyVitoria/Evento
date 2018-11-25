@@ -6,12 +6,22 @@ from .models import Evento, Lote, Usuario, Carrinho, CarrinhoIngresso
 import json
 from django.core import serializers
 from django.contrib.auth import authenticate, login, logout
-
+from django.contrib.auth.models import Group
 
 # Create your views here.
+"""
+    View da Página Inicial
+"""
+
+
 def home(request):
     temp = loader.get_template('evento_site/pages/home.html')
     return HttpResponse(temp.render({}, request))
+
+
+"""
+    View da Página de cadastro de usuário
+"""
 
 
 def criar_conta(request):
@@ -25,24 +35,46 @@ def criar_conta(request):
         post = request.POST
         user_forms = UserForm(post)
         if user_forms.is_valid():
-            user_forms.save()
+            # Salva o formulário
+            user_object = user_forms.save()
+
+            # Atribui as permissões do Promotor
+            user_object.set_password(user_object.password)
+            user_object.is_staff = True
+            promotor_profile = Group.objects.filter(name='Promotor').first()
+            user_object.groups.add(promotor_profile)
+            user_object.save()
+
+            # Inicializa um Novo formulário em Branco
             user_forms = UserForm()
             user_forms.format()
         else:
             msg = user_forms.errors
-        None - 1
     else:
         user_forms = UserForm()
-        user_forms.format()
 
-    end_forms = EnderecoForm()
+    user_forms.format()
+
+    # end_forms = EnderecoForm()
     test = json.dumps({1: 1, 2: 2})
     return HttpResponse(temp.render({
         'message': msg,
         'user_forms': user_forms,
-        'endereco_forms': end_forms,
+        # 'endereco_forms': end_forms,
         'test': test
     }, request))
+
+
+"""
+    Funções de Construção do JSON da api de eventos 
+"""
+
+
+def build_categoria(evento):
+    cat_list = list()
+    for categoria in evento.id_categoria.all():
+        cat_list.append(categoria.nome)
+    return sorted(cat_list)
 
 
 def build_evento(evento):
@@ -50,7 +82,7 @@ def build_evento(evento):
         'status', 'nome', 'banner', 'descricao', 'data_inicio', 'data_fim',)))
     temp_evento_dict = evento_serialized[0]['fields']
     temp_evento_dict['id'] = evento_serialized[0]['pk']
-    temp_evento_dict['categoria'] = evento.id_categoria.nome
+    temp_evento_dict['categoria'] = build_categoria(evento)
     return temp_evento_dict
 
 
@@ -104,31 +136,38 @@ def build_evento_json(eventos):
     evento_list = build_evento_list(eventos)
     return json.dumps(evento_list)
 
-
+"""
+    View da API de eventos 
+"""
 def get_eventos(request):
     evento_json = ''
     if request.method == 'GET':
         interval = 20
         id_get = int(request.GET['id'])
-        eventos = Evento.objects.filter(status=True)[interval * id_get: (id_get + 1) * interval]
-
+        eventos = Evento.objects.filter(status='A')[interval * id_get: (id_get + 1) * interval]
         evento_json = build_evento_list(eventos)
 
     return JsonResponse(evento_json)
 
 
-def get_evento(requets, id):
-    if requets.method == "GET":
+"""
+    View da Página dos eventos 
+"""
+def get_evento(request, id):
+    if request.method == "GET":
         try:
             evento = Evento.objects.get(pk=id)
-            temp = loader.get_template('evento_site/pages/evento.html')
-            return HttpResponse(temp.render({'evento': evento}, requets))
+            temp = loader.get_template('evento_site/pages/evento/evento.html')
+            return HttpResponse(temp.render({'evento': evento}, request))
         except:
-            return home(requets)
-    elif requets.method == "POST":
-        post = requets.POST
+            return home(request)
+    elif request.method == "POST":
+        if request.user is not None and request.user.is_authenticated:
+            user = Usuario.objects.filter(id=request.user.id).first()
+        else:
+            return redirect(login_evento)
+        post = request.POST
         ingresso_list = sorted(post.keys())[:-1]
-        user = Usuario.objects.first()
         for meta in ingresso_list:
             if int(post[meta]) > 0:
                 id_ingresso, id_lote = meta.split('-')
@@ -141,7 +180,7 @@ def get_evento(requets, id):
                     else:
                         carrinho = carrinho[0]
                     CarrinhoIngresso(id_lote=lote, id_carrinho=carrinho, qtd_ingresso=int(post[meta])).save()
-        requets.method = "GET"
+        request.method = "GET"
         return redirect(get_carrinho)
 
 

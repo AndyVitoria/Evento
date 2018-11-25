@@ -2,8 +2,8 @@
 {% load static %}
 {% block content %}
     <div class="container" style="padding: 100px 0">
-        <div class="row ">
-            <div class="col s6 offset-s3">
+        <div class="row">
+            <div class="col s12 m6 offset-m3">
                 <div class="card center">
                     <div class="card-content">
 
@@ -17,7 +17,7 @@
 
                     <div class="card-action">
                         <a class="light-blue-text" href="#">Recuperar senha</a>
-                        <a class="light-blue-text" href="#">Criar Conta</a>
+                        <a class="light-blue-text" href="{% url 'register' %}">Criar Conta</a>
                     </div>
                 </div>
             </div>
