@@ -1,0 +1,78 @@
+{% extends 'evento_site/pages/base.html' %}
+{% load static %}
+{% block content %}
+    <div id="index-banner" class="parallax-container">
+        <div class="parallax"><img src="{% static 'images/evento_cards/evento1.png' %}"
+                                   alt="Unsplashed background img 1">
+        </div>
+    </div>
+
+    <div class="container white">
+        <div class="section">
+            <div class="row center">
+                <h2 class="">
+                    {{ evento.nome }}
+                </h2>
+                <p class="light-blue-text">
+                    {{ evento.id_endereco.get_endereco_abreviado }}
+                </p>
+            </div>
+            <div class="row">
+                <div class="col s12 m6">
+                    <h6 class="light-blue-text">Descrição:</h6>
+                    <p>
+                        {{ evento.descricao }}
+                    </p>
+                </div>
+                <div class="col s12 m6">
+                    <form method="post">{% csrf_token %}
+                    <div class="card">
+                        <div class="card-content">
+                            <table class="responsive-table highlight">
+                                <thead>
+                                <tr>
+                                    <th class="center">Ingresso</th>
+                                    <th class="center">Preço</th>
+                                    <th class="center">Taxa</th>
+                                    <th class="center">Qtd.</th>
+                                    <th class="center">Valor Total</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for ing in evento.get_ingresso %}
+                                    <tr>
+                                        <td class="center">
+                                            {{ ing.get_meta_nome }}
+                                        </td>
+                                        <td class="center" id="preco-{{ ing.id }}-{{ ing.get_lote.id }}">
+                                            R$ {{ ing.get_lote.valor }}
+                                        </td>
+                                        <td class="center" id="tx-{{ ing.id }}-{{ ing.get_lote.id }}">
+                                            R$ 0.00
+                                        </td>
+                                        <td id="evento-ingresso" class="center">
+                                            <label for="{{ ing.id }}-{{ ing.get_lote.id }}"></label>
+                                            <input id="{{ ing.id }}-{{ ing.get_lote.id }}" name="{{ ing.id }}-{{ ing.get_lote.id }}" maxlength="3" min="0" type="number" value="0">
+                                        </td>
+                                        <td class="center">
+                                            <p id="tot-{{ ing.id }}-{{ ing.get_lote.id }}">R$ 0.00</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn right waves-effect waves-light light-blue">Comprar</button>
+                    </form>
+                </div>
+                <div class="row">
+                    {% for categoria in evento.get_categoria %}
+                        <div class="chip"><a style="font-size: 12px" class="grey-text" href="#">{{ categoria.nome }}</a></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'evento_site/pages/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container">
+        <div class="section">
+            <div class="row">
+                <form method="post">{{ csrf_token }}
+                <div class="card">
+                    <table class="responsive-table highlight">
+                        <thead>
+                        <tr>
+                            <th class="center">Ingresso</th>
+                            <th class="center">Preço</th>
+                            <th class="center">Taxa</th>
+                            <th class="center">Qtd.</th>
+                            <th class="center">Valor Total</th>
+                            <th class="center">Excluir</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in carrinho_ingresso %}
+                            <tr id="item-{{ item.id }}">
+                                <td class="center">
+                                    {{ item.id_lote.id_ingresso.id_evento.nome }} <br>
+                                    {{ item.id_lote.id_ingresso.tipo }} -
+                                    {{ item.id_lote.nome }}
+                                </td>
+                                <td class="center" id="preco-{{ item.id }}">
+                                    R$ {{ item.id_lote.valor }}
+                                </td>
+                                <td class="center" id="tx-{{ item.id }}">
+                                    R$ 0.00
+                                </td>
+                                <td id="evento-ingresso" class="center">
+                                    <label for="{{ item.id }}"></label>
+                                    <input id="{{ item.id }}" name="ci-{{ item.id }}" maxlength="3" min="0"
+                                           type="number" value="{{ item.qtd_ingresso }}">
+                                </td>
+                                <td class="center">
+                                    <p id="tot-{{ item.id }}">R$ {{ item.total }}0</p>
+                                </td>
+                                <td class="center">
+                                    <a id="remover {{ item.id }}" href=""><i class="material-icons">delete</i></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        var CSRF_TOKEN = '{{ csrf_token }}';
+    </script>
+{% endblock %}
