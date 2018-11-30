@@ -66,7 +66,11 @@
                     <button type="submit" class="btn right waves-effect waves-light light-blue">Comprar</button>
                     </form>
                 </div>
-
+                <div class="row">
+                    {% for categoria in evento.get_categoria %}
+                        <div class="chip"><a style="font-size: 12px" class="grey-text" href="#">{{ categoria.nome }}</a></div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>

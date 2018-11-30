@@ -39,11 +39,7 @@ def criar_conta(request):
             user_object = user_forms.save()
 
             # Atribui as permissões do Promotor
-            user_object.set_password(user_object.password)
-            user_object.is_staff = True
-            promotor_profile = Group.objects.filter(name='Promotor').first()
-            user_object.groups.add(promotor_profile)
-            user_object.save()
+            user_object.promotor()
 
             # Inicializa um Novo formulário em Branco
             user_forms = UserForm()
@@ -136,9 +132,12 @@ def build_evento_json(eventos):
     evento_list = build_evento_list(eventos)
     return json.dumps(evento_list)
 
+
 """
     View da API de eventos 
 """
+
+
 def get_eventos(request):
     evento_json = ''
     if request.method == 'GET':
@@ -153,6 +152,8 @@ def get_eventos(request):
 """
     View da Página dos eventos 
 """
+
+
 def get_evento(request, id):
     if request.method == "GET":
         try:
@@ -161,9 +162,10 @@ def get_evento(request, id):
             return HttpResponse(temp.render({'evento': evento}, request))
         except:
             return home(request)
+
     elif request.method == "POST":
         if request.user is not None and request.user.is_authenticated:
-            user = Usuario.objects.filter(id=request.user.id).first()
+            user = Usuario.get_usuario(request.user.id)
         else:
             return redirect(login_evento)
         post = request.POST
@@ -173,7 +175,7 @@ def get_evento(request, id):
                 id_ingresso, id_lote = meta.split('-')
                 lote = Lote.objects.filter(id=id_lote, id_ingresso=id_ingresso).first()
                 if lote is not None:
-                    carrinho = Carrinho.objects.filter(id_user=user.id, status=True)
+                    carrinho = user.get_carrinho()
                     if len(carrinho) == 0:
                         carrinho = Carrinho(id_user=user, status=True)
                         carrinho.save()
@@ -185,6 +187,7 @@ def get_evento(request, id):
 
 
 def get_carrinho(request):
+    # Só responde requisições do tipo GET ou DELETE
     if request.method == "GET" or request.method == "DELETE":
         if 'DELETE' in request.GET.keys():  # request.method == 'DELETE':
             id = request.GET['id']
@@ -192,21 +195,28 @@ def get_carrinho(request):
             if carrinho is not None:
                 carrinho.delete()
 
-        user = Usuario.objects.first()
-        carrinho = Carrinho.objects.filter(id_user=user.id, status=True).first()
-        if carrinho is None:
-            carrinho = Carrinho(id_user=user.id, status=True)
-            carrinho.save()
-        carrinho_ingresso = CarrinhoIngresso.objects.filter(id_carrinho=carrinho.id)
+        # Recupera Objeto Usuario com base no ID do usuário logado no sistema
+        user = Usuario.get_usuario(request.user.id)
+
+        # Recupera o Carrinho do usuário
+        carrinho = user.get_carrinho()
+
+        # Recupera os itens dentro do carrinho
+        carrinho_ingresso = carrinho.get_item()
+
+        # Carrega o Template
         temp = loader.get_template('evento_site/pages/carrinho.html')
+
         return HttpResponse(temp.render({'carrinho': carrinho, 'carrinho_ingresso': carrinho_ingresso}))
 
 
+# Mensagem de erro de da Usuário ou senha tela do Login
 def error_msg():
     msg = {'class': 'red-text', 'text': 'Usuário ou senha inválidos!'}
     return msg
 
 
+# Mensagem de erro de Usuário desabilitado
 def disabled_msg():
     msg = {'class': 'yellow-text', 'text': 'Seu usuário foi desativado. Por favor contacte o administrador.'}
     return msg
@@ -219,10 +229,12 @@ def login_evento(request):
     loginForm = LoginForm()
     temp = loader.get_template('evento_site/pages/login.html')
     msg = {'class': '', 'text': ''}
+
     if request.method == 'POST':
         username_request = request.POST.get('user')
         password_request = request.POST.get('password')
-        user = authenticate(username=username_request, password=password_request)
+        user = Usuario.autenticar(username=username_request, password=password_request)
+
         if user is None:
             msg = error_msg()
         elif user.is_active:
@@ -230,15 +242,6 @@ def login_evento(request):
             return redirect(home)
         else:
             msg = disabled_msg()
-            """
-            if user is not None and user.check_password(password_request):
-
-            else:
-                msg = error_msg()
-
-        else:
-            msg = error_msg()
-            """
 
     return HttpResponse(temp.render({
         'login': loginForm,

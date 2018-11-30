@@ -4,6 +4,7 @@
     <div class="container">
         <div class="section">
             <div class="row">
+                <form method="post">{{ csrf_token }}
                 <div class="card">
                     <table class="responsive-table highlight">
                         <thead>
@@ -47,6 +48,7 @@
                         </tbody>
                     </table>
                 </div>
+                </form>
             </div>
         </div>
     </div>
