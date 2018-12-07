@@ -165,8 +165,18 @@ class Carrinho(Model):
             total += carrinho_item.total()
         return total
 
+    def total(self):
+        total = float(self.calcular_total())
+        return "%.2f" % total
+
     def get_item(self):
         return CarrinhoIngresso.objects.filter(id_carrinho=self.id)
+
+    def get_item_by_id(self, id):
+        return self.get_item().filter(id=id).first()
+
+    def size(self):
+        return len(self.get_item())
 
 class CarrinhoIngresso(Model):
     id = models.AutoField(primary_key=True)
@@ -176,6 +186,16 @@ class CarrinhoIngresso(Model):
 
     def total(self):
         return self.id_lote.valor * self.qtd_ingresso
+
+    def update_qtd_ingresso(self,qtd_ingresso):
+        if self.qtd_ingresso != qtd_ingresso:
+            self.qtd_ingresso = qtd_ingresso
+            self.save()
+            return True
+        return False
+
+    def get_ingresso(self):
+        return self.id_lote.id_ingresso
 
 
 # ============={ Eventos }===============#
