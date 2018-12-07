@@ -1,0 +1,30 @@
+{% extends 'evento_site/pages/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            {% for eticket_form in eticket_form_list %}
+                <div class="col s12 m4">
+                    <form method="post">{% csrf_token %}
+                        <div class="card">
+
+                            <div class="card-content">
+                            <span class="card-title center light-blue-text">
+                                {{ eticket_form.ingresso }}
+                            </span>
+                                <div class="divider light-blue"></div>
+
+                                {{ eticket_form.form.as_p }}
+                            </div>
+
+                            <div class="card-action ">
+                                <button type="submit" class="btn">Salvar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

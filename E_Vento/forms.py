@@ -1,7 +1,7 @@
 from .models import *
 from django.forms import ModelForm, DateField, Form
 from django import forms
-from django.forms.widgets import DateInput, TimeInput, Textarea, TextInput, NumberInput
+from django.forms.widgets import DateInput, TimeInput, Textarea, TextInput, NumberInput, HiddenInput
 
 class UserForm(ModelForm):
     class Meta:
@@ -84,3 +84,15 @@ class LoteForm(ModelForm):
         as_div = self.as_p()
         as_div.replace('p>', 'div>')
         return as_div
+
+
+class EticketForm(ModelForm):
+    id_ingresso = forms.IntegerField(widget=forms.HiddenInput, required=False)
+
+    class Meta:
+        model = Eticket
+        fields = '__all__'
+        exclude = ['id_compra', 'id_ingresso', 'status', 'qr_code', 'codigo']
+        widgets = {
+            'id_usuario': NumberInput(attrs={'type': 'hidden'})
+        }

@@ -176,11 +176,6 @@ def get_evento(request, id):
                 lote = Lote.objects.filter(id=id_lote, id_ingresso=id_ingresso).first()
                 if lote is not None:
                     carrinho = user.get_carrinho()
-                    if len(carrinho) == 0:
-                        carrinho = Carrinho(id_user=user, status=True)
-                        carrinho.save()
-                    else:
-                        carrinho = carrinho[0]
                     CarrinhoIngresso(id_lote=lote, id_carrinho=carrinho, qtd_ingresso=int(post[meta])).save()
         request.method = "GET"
         return redirect(get_carrinho)
@@ -189,17 +184,18 @@ def get_evento(request, id):
 def get_carrinho(request):
     # Só responde requisições do tipo GET ou DELETE
     if request.method == "GET" or request.method == "DELETE":
-        if 'DELETE' in request.GET.keys():  # request.method == 'DELETE':
-            id = request.GET['id']
-            carrinho = CarrinhoIngresso.objects.filter(id=id).first()
-            if carrinho is not None:
-                carrinho.delete()
-
         # Recupera Objeto Usuario com base no ID do usuário logado no sistema
         user = Usuario.get_usuario(request.user.id)
 
         # Recupera o Carrinho do usuário
         carrinho = user.get_carrinho()
+
+        if 'DELETE' in request.GET.keys():  # request.method == 'DELETE':
+            user.get_carrinho()
+            id = request.GET['id']
+            item = carrinho.get_item_by_id(id)
+            if item is not None:
+                item.delete()
 
         # Recupera os itens dentro do carrinho
         carrinho_ingresso = carrinho.get_item()
@@ -207,7 +203,37 @@ def get_carrinho(request):
         # Carrega o Template
         temp = loader.get_template('evento_site/pages/carrinho.html')
 
-        return HttpResponse(temp.render({'carrinho': carrinho, 'carrinho_ingresso': carrinho_ingresso}))
+        return HttpResponse(temp.render({'carrinho': carrinho, 'carrinho_ingresso': carrinho_ingresso}, request))
+    elif request.method == 'POST':
+        # Recupera Objeto Usuario com base no ID do usuário logado no sistema
+        user = Usuario.get_usuario(request.user.id)
+
+        # Recupera o Carrinho do usuário
+        carrinho = user.get_carrinho()
+
+        # Dados do Formulário de Carrinho
+        post = request.POST
+
+        # Lista de Etickets
+        eticket_form_list = list()
+
+        # Atualizando a quantidade de ingressos
+        for key in post:
+            if 'ci-' in key:
+                ci_id = int(key.split('-')[1])
+                ci_qtd = int(post[key])
+                if ci_qtd > 0:
+                    item = carrinho.get_item_by_id(ci_id)
+                    item.update_qtd_ingresso(ci_qtd)
+                    ingresso = item.get_ingresso()
+                    eticket_form_list.append({'form': EticketForm({'id_ingresso': ingresso.id, 'id_usuario': user.id}),
+                                              'ingresso': ingresso})
+                else:
+                    carrinho.get_item_by_id(ci_id).delete()
+
+        temp = loader.get_template('evento_site/pages/eticket/eticket_form.html')
+
+        return HttpResponse(temp.render({'eticket_form_list': eticket_form_list}, request))
 
 
 # Mensagem de erro de da Usuário ou senha tela do Login

@@ -37,7 +37,7 @@
                     url: document.URL,
                     data: {
                         'DELETE': true,
-                        'csrfmiddlewaretoken': CSRF_TOKEN,
+                        'csrfmiddlewaretoken': csrftoken,
                         'id': action[1]
                     }
                 }).fail(function () {
@@ -48,7 +48,7 @@
                 });
             });
         });
-
+        var csrftoken = getCookie('csrftoken');
     }); // end of document ready
 })(jQuery); // end of jQuery name space
 
@@ -133,4 +133,3 @@ function setMoveActionEvento() {
 
     showEventoCard('info');
 }
-
