@@ -1,5 +1,5 @@
 import os
-
+import qrcode
 from django.contrib.auth import authenticate
 from django.utils.text import slugify
 
@@ -15,6 +15,14 @@ def upload_to(instance, filename):
     filename_base, filename_ext = os.path.splitext(filename)
     return "media/{evento}/{filename}{extension}".format(
         evento=slugify(instance.id_evento.id),
+        filename=slugify(filename_base),
+        extension=filename_ext.lower(),
+    )
+
+def gerar_qr_code(instance, filename):
+    filename_base, filename_ext = os.path.splitext(filename)
+    return "media/qr_code/{usuario}/{filename}{extension}".format(
+        usuario=slugify(instance.id_usuario.id),
         filename=slugify(filename_base),
         extension=filename_ext.lower(),
     )
@@ -148,7 +156,8 @@ class Usuario(User):
     def get_carrinho(self):
         cart = Carrinho.objects.filter(id_user=self.id, status=True).first()
         if cart is None:
-            cart = Carrinho(id_user=self.id)
+            cart = Carrinho(id_user=self)
+            cart.save()
         return cart
 
 
@@ -157,6 +166,13 @@ class Carrinho(Model):
     id_user = models.ForeignKey('Usuario', blank=False, on_delete=models.CASCADE)
     ingressos = models.ManyToManyField('Lote', through='CarrinhoIngresso')
     status = models.BooleanField(default=True)
+
+    def total_ingressos(self):
+        count = 0
+        item_list = self.get_item()
+        for item in item_list:
+            count += item.qtd_ingresso
+        return count
 
     def calcular_total(self):
         carrinho_list = CarrinhoIngresso.objects.filter(id_carrinho=self.id)
@@ -177,6 +193,7 @@ class Carrinho(Model):
 
     def size(self):
         return len(self.get_item())
+
 
 class CarrinhoIngresso(Model):
     id = models.AutoField(primary_key=True)
@@ -322,15 +339,41 @@ class Lote(Model):
 # Revisar com a Ju e o Caio
 class Eticket(Model):
     id = models.AutoField(primary_key=True)
-    cpf = models.CharField(max_length=11, blank=False, validators=[RegexValidator(regex='[\d]+')])
+    cpf = models.CharField(max_length=11, blank=True, validators=[RegexValidator(regex='[\d]+')])
     status = models.BooleanField(default=True)
-    nome = models.CharField(max_length=200, blank=False)
-    codigo = models.TextField(blank=False)
+    nome = models.CharField(max_length=200, blank=True)
     id_usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE, blank=False)
     id_ingresso = models.ForeignKey('Ingresso', on_delete=models.CASCADE, blank=False)
     id_compra = models.ForeignKey('Compra', on_delete=models.CASCADE, blank=False)
-    qr_code = models.ImageField(upload_to='qr_code/', default='media/no-img.png')
+    qr_code = models.ImageField(upload_to=gerar_qr_code, default='media/no-img.png')
 
+    def __str__(self):
+        nome = ''
+        if self.nome is not None:
+            nome = self.nome
+        return self.id_ingresso.id_evento.__str__() + ' - ' + nome
+
+    def gerar_qr_code(self):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(self.id)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        img_file_name = str(self.id) + '.jpg'
+
+        img_path = 'media/qr_code/' + str(self.id_usuario.id) + '/'
+        try:
+            os.mkdir(img_path)
+        except FileExistsError:
+            pass
+        img.save(img_path + img_file_name)
+        self.qr_code = img_path + img_file_name
+        self.save()
 
 # ============{ Pagamento }===========
 class FormaPagamento(Model):
@@ -347,8 +390,6 @@ class FormaPagamento(Model):
     P - Pagamento Efetuado com Sucesso
     N - Pagamento Não Efetuado
 """
-
-
 class Compra(Model):
     id = models.AutoField(primary_key=True)
     status = models.CharField(default='A', max_length=1)
@@ -356,6 +397,7 @@ class Compra(Model):
     data_pagamento = models.DateTimeField()
     id_carrinho = models.ForeignKey('Carrinho', on_delete=models.CASCADE, blank=False)
     id_forma_pagamento = models.ForeignKey('FormaPagamento', on_delete=models.CASCADE, blank=False)
+    id_user = models.ForeignKey('Usuario', on_delete=models.CASCADE, blank=False)
 
     def __str__(self):
         return self.id_carrinho.id_user.__str__() + ' - ' + self.data_compra.__str__()
@@ -363,6 +405,22 @@ class Compra(Model):
     def get_forma_pagamento(self):
         return self.id_forma_pagamento
 
+    def pagar(self):
+        self.status = 'P'
+
     # A implementar
     def gerar_eticket(self):
-        pass
+        etickets = Eticket.objects.filter(id_compra=self.id)
+        if self.status == 'P' and len(etickets) == 0:
+            carrinho = self.id_carrinho
+
+            user = carrinho.id_user
+
+            ingresso_list = carrinho.get_item()
+
+            for ingresso in ingresso_list:
+                for i in range(ingresso.qtd_ingresso):
+                    et = Eticket(id_ingresso=ingresso.get_ingresso(), id_compra=self, id_usuario=user)
+                    et.save()
+                    et.gerar_qr_code()
+        return

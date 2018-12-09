@@ -2,7 +2,8 @@
 {% load static %}
 {% block content %}
     <div id="index-banner" class="parallax-container">
-        <div class="parallax"><img src="{% static 'images/evento_cards/evento1.png' %}"
+        <div class="parallax">
+            <img src="{{ banner.image_url.url }}"
                                    alt="Unsplashed background img 1">
         </div>
     </div>

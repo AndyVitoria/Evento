@@ -115,7 +115,13 @@ class EventoAdmin(admin.ModelAdmin):
 
 
 class EticketAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ['qr_code', 'id_compra', 'id_ingresso', 'id_usuario', 'status']
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+
+            return Eticket.objects.all()
+        else:
+            return Eticket.objects.filter(id_usuario=request.user.id)
 
 
 class FormaPagamentoAdmin(admin.ModelAdmin):
@@ -123,7 +129,13 @@ class FormaPagamentoAdmin(admin.ModelAdmin):
 
 
 class CompraAdmin(admin.ModelAdmin):
-    pass
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+
+            return Compra.objects.all()
+        else:
+            return Compra.objects.filter(id_user=request.user.id)
 
 
 admin.site.register(Estado, EstadoAdmin)

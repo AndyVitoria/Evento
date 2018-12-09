@@ -98,5 +98,10 @@
 {% if request.get_full_path == '/carrinho/' %}
     <script src='{% static 'js/carrinho.js' %}'></script>
 {% endif %}
+{% if request.get_full_path == '/pagamento/' %}
+    <script src="{% static 'js/pagamento.js' %}"></script>
+    <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+    <script src='{% static 'js/paypal.js' %}'></script>
+{% endif %}
 </body>
 </html>

@@ -80,6 +80,8 @@ function topEvents(eventData) {
         let page = eventData[i]['page'];
         let nome = eventData[i]['evento']['nome'];
         let banner = 'static/images/evento_cards/evento1.png';
+        if  (eventData[i]['evento']['banner'] != '')
+            banner =  eventData[i]['evento']['banner'];
         let desc = eventData[i]['evento']['descricao'];
         newEvent = buildCard(page, nome, banner, desc);
         divTopEvents.append(newEvent);
