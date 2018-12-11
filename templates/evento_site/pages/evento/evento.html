@@ -4,7 +4,7 @@
     <div id="index-banner" class="parallax-container">
         <div class="parallax">
             <img src="{{ banner.image_url.url }}"
-                                   alt="Unsplashed background img 1">
+                 alt="Unsplashed background img 1">
         </div>
     </div>
 
@@ -27,53 +27,84 @@
                 </div>
                 <div class="col s12 m6">
                     <form method="post">{% csrf_token %}
-                    <div class="card">
-                        <div class="card-content">
-                            <table class="responsive-table highlight">
-                                <thead>
-                                <tr>
-                                    <th class="center">Ingresso</th>
-                                    <th class="center">Preço</th>
-                                    <th class="center">Taxa</th>
-                                    <th class="center">Qtd.</th>
-                                    <th class="center">Valor Total</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for ing in evento.get_ingresso %}
+                        <div class="card">
+                            <div class="card-content">
+                                <table class="responsive-table highlight">
+                                    <thead>
                                     <tr>
-                                        <td class="center">
-                                            {{ ing.get_meta_nome }}
-                                        </td>
-                                        <td class="center" id="preco-{{ ing.id }}-{{ ing.get_lote.id }}">
-                                            R$ {{ ing.get_lote.valor }}
-                                        </td>
-                                        <td class="center" id="tx-{{ ing.id }}-{{ ing.get_lote.id }}">
-                                            R$ 0.00
-                                        </td>
-                                        <td id="evento-ingresso" class="center">
-                                            <label for="{{ ing.id }}-{{ ing.get_lote.id }}"></label>
-                                            <input id="{{ ing.id }}-{{ ing.get_lote.id }}" name="{{ ing.id }}-{{ ing.get_lote.id }}" maxlength="3" min="0" type="number" value="0">
-                                        </td>
-                                        <td class="center">
-                                            <p id="tot-{{ ing.id }}-{{ ing.get_lote.id }}">R$ 0.00</p>
-                                        </td>
+                                        <th class="center">Ingresso</th>
+                                        <th class="center">Preço</th>
+                                        <th class="center">Taxa</th>
+                                        <th class="center">Qtd.</th>
+                                        <th class="center">Valor Total</th>
                                     </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                    {% for ing in evento.get_ingresso %}
+                                        <tr>
+                                            <td class="center">
+                                                {{ ing.get_meta_nome }}
+                                            </td>
+                                            <td class="center" id="preco-{{ ing.id }}-{{ ing.get_lote.id }}">
+                                                R$ {{ ing.get_lote.valor }}
+                                            </td>
+                                            <td class="center" id="tx-{{ ing.id }}-{{ ing.get_lote.id }}">
+                                                R$ 0.00
+                                            </td>
+                                            <td id="evento-ingresso" class="center">
+                                                <label for="{{ ing.id }}-{{ ing.get_lote.id }}"></label>
+                                                <input id="{{ ing.id }}-{{ ing.get_lote.id }}"
+                                                       name="{{ ing.id }}-{{ ing.get_lote.id }}" maxlength="3" min="0"
+                                                       type="number" value="0">
+                                            </td>
+                                            <td class="center">
+                                                <p id="tot-{{ ing.id }}-{{ ing.get_lote.id }}">R$ 0.00</p>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" class="btn right waves-effect waves-light light-blue">Comprar</button>
+                        <button type="submit" class="btn right waves-effect waves-light light-blue">Comprar</button>
                     </form>
                 </div>
                 <div class="row">
                     {% for categoria in evento.get_categoria %}
-                        <div class="chip"><a style="font-size: 12px" class="grey-text" href="#">{{ categoria.nome }}</a></div>
+                        <div class="chip"><a style="font-size: 12px" class="grey-text" href="#">{{ categoria.nome }}</a>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
+    <div class="divider light-blue"></div>
+    <div class="container white">
+        <div class="section">
 
+            <div class="row">
+                <h3 class="">
+                    Você também pode gostar:
+                </h3>
+                {% for item in recomendacao %}
+                    <div class="col s12 m2">
+                        <div class="card ">
+                            <div class="card-image">
+                                <img src='{{ item.get_first_banner.image_url.url }}'>
+                            </div>
+
+                            <h5 class="center black-text">{{ item.nome }}</h5>
+                            <div class="card-content">
+                                <p style="font-size: 12px;" class="grey-text"> Vitória/ES</p>
+                            </div>
+                            <div class="card-action">
+                                <a class="light-blue-text" href="#">Gratis</a>
+                                <a class="light-blue-text" href="../{{ item.id }}">Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 {% endblock %}

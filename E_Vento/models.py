@@ -223,6 +223,9 @@ class Categoria(Model):
     def __str__(self):
         return self.nome
 
+    def get_recomendacao(self):
+        return Evento.objects.filter(id_categoria=self)[:10]
+
 
 class Banner(Model):
     id = models.AutoField(primary_key=True)
@@ -262,8 +265,14 @@ class Evento(Model):
     def get_banners(self):
         return Banner.objects.filter(id_evento=self.id)
 
+    def get_first_banner(self):
+        return self.get_banners().first()
+
     def get_categoria(self):
         return self.id_categoria.all()
+
+    def get_first_categoria(self):
+        return self.get_categoria().first()
 
     def aprovar(self):
         if self.status == 'E':
@@ -292,6 +301,10 @@ class Evento(Model):
             self.save()
             return True
         return False
+
+    def get_recomendacao(self):
+        return self.id_categoria.first().get_recomendacao()
+
 
 
 class Ingresso(Model):

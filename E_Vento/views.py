@@ -164,10 +164,15 @@ def get_evento(request, id):
             evento = Evento.objects.get(pk=id)
             banner = Banner.objects.filter(id_evento=evento).first()
             if banner is None:
-                banner = {'image_url':{'url': 'images/evento_cards/evento1.png'}}
+                banner = {'image_url': {'url': 'images/evento_cards/evento1.png'}}
+            recomendacao = evento.get_recomendacao()
 
             temp = loader.get_template('evento_site/pages/evento/evento.html')
-            return HttpResponse(temp.render({'evento': evento, 'banner': banner}, request))
+            return HttpResponse(temp.render({
+                'evento': evento,
+                'banner': banner,
+                'recomendacao': recomendacao
+            }, request))
         except:
             return home(request)
 
