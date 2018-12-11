@@ -1,10 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+
+{% extends 'evento_site/pages/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="container">
+        <div class="section">
+            <div class="row">
+                <div class="col s12">
+                    <div>
+                        <h1 class="center light-blue-text">Pagamento </h1>
+                    </div>
+                    <div>
+                        <table class="responsive-table highlight">
+                            <thead>
+                            <tr>
+                                <th class="center">Ingresso</th>
+                                <th class="center">Preço</th>
+                                <th class="center">Taxa</th>
+                                <th class="center">Qtd.</th>
+                                <th class="center">Valor Total</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in carrinho.get_item %}
+                                <tr id="item-{{ item.id }}">
+                                    <td class="center">
+                                        {{ item.id_lote.id_ingresso.id_evento.nome }} <br>
+                                        {{ item.id_lote.id_ingresso.tipo }} -
+                                        {{ item.id_lote.nome }}
+                                    </td>
+                                    <td class="center" id="preco-{{ item.id }}">
+                                        R$ {{ item.id_lote.valor }}
+                                    </td>
+                                    <td class="center" id="tx-{{ item.id }}">
+                                        R$ 0.00
+                                    </td>
+                                    <td id="evento-ingresso" class="center">
+                                        {{ item.qtd_ingresso }}
+                                    </td>
+                                    <td class="center">
+                                        <p id="tot-{{ item.id }}">R$ {{ item.total }}0</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr id="total">
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td style="font-weight: bold">Total Compra:</td>
+                                <td class="center">
+                                    <p id="total-carrinho">
+                                        R$
+                                        {% if carrinho.size > 0 %}
+                                            {{ carrinho.total }}
+                                        {% else %}
+                                            0,00
+                                        {% endif %}
+                                    </p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row center">
+                <div class="col s12">
+                    <ul class="tabs">
+                        {% for fp in forma_pagamento %}
+                            <li class="tab col s3"><a href="#fp{{ fp.id }}">{{ fp }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="row center">
+                {% for fp in forma_pagamento %}
+                    <div id="fp{{ fp.id }}" class="col s12">
+                        {% if fp.nome == 'PayPal' %}
+                            <div id="paypal-button-container"></div>
+                        {% else %}
+                            <a class="btn">{{ fp }}</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+    </div>
+    <script>
+        var total = '{{ carrinho.total }}';
+        var carrinhoID = {{ carrinho.id }};
+    </script>
+{% endblock %}

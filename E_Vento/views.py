@@ -39,11 +39,10 @@ def criar_conta(request):
             user_object = user_forms.save()
 
             # Atribui as permissões do Promotor
-            user_object.promotor()
+            user_object.criar_promotor()
 
-            # Inicializa um Novo formulário em Branco
-            user_forms = UserForm()
-            user_forms.format()
+            Usuario.autenticar(username=user_object.username, password=user_object.password)
+            return redirect(home)
         else:
             msg = user_forms.errors
     else:
@@ -79,6 +78,11 @@ def build_evento(evento):
     temp_evento_dict = evento_serialized[0]['fields']
     temp_evento_dict['id'] = evento_serialized[0]['pk']
     temp_evento_dict['categoria'] = build_categoria(evento)
+    banner = Banner.objects.filter(id_evento=evento).first()
+    if banner is not None:
+        temp_evento_dict['banner'] = banner.image_url.url
+    else:
+        temp_evento_dict['banner'] = ''
     return temp_evento_dict
 
 
@@ -158,8 +162,17 @@ def get_evento(request, id):
     if request.method == "GET":
         try:
             evento = Evento.objects.get(pk=id)
+            banner = Banner.objects.filter(id_evento=evento).first()
+            if banner is None:
+                banner = {'image_url': {'url': 'images/evento_cards/evento1.png'}}
+            recomendacao = evento.get_recomendacao()
+
             temp = loader.get_template('evento_site/pages/evento/evento.html')
-            return HttpResponse(temp.render({'evento': evento}, request))
+            return HttpResponse(temp.render({
+                'evento': evento,
+                'banner': banner,
+                'recomendacao': recomendacao
+            }, request))
         except:
             return home(request)
 
@@ -214,9 +227,6 @@ def get_carrinho(request):
         # Dados do Formulário de Carrinho
         post = request.POST
 
-        # Lista de Etickets
-        eticket_form_list = list()
-
         # Atualizando a quantidade de ingressos
         for key in post:
             if 'ci-' in key:
@@ -225,15 +235,47 @@ def get_carrinho(request):
                 if ci_qtd > 0:
                     item = carrinho.get_item_by_id(ci_id)
                     item.update_qtd_ingresso(ci_qtd)
-                    ingresso = item.get_ingresso()
-                    eticket_form_list.append({'form': EticketForm({'id_ingresso': ingresso.id, 'id_usuario': user.id}),
-                                              'ingresso': ingresso})
                 else:
                     carrinho.get_item_by_id(ci_id).delete()
+        return redirect(pagamento)
 
-        temp = loader.get_template('evento_site/pages/eticket/eticket_form.html')
 
-        return HttpResponse(temp.render({'eticket_form_list': eticket_form_list}, request))
+def pagamento(request):
+    if request.method == 'POST':
+        post = request.POST
+        carrinho_id = post['carrinhoID']
+        total = float(post['total'])
+        data = post.get('data', False)
+        tipo_pagamento = post['type']
+
+        carrinho = Carrinho.objects.filter(id=carrinho_id, status=True).first()
+        forma_pagamento = FormaPagamento.objects.filter(nome=tipo_pagamento).first()
+        compra = Compra.objects.filter(id_carrinho=carrinho.id)
+        if carrinho is not None and forma_pagamento is not None and carrinho.calcular_total() == total and len(
+                compra) == 0:
+            compra = Compra(data_compra=timezone.now(), data_pagamento=timezone.now(), id_carrinho=carrinho,
+                            id_forma_pagamento=forma_pagamento, id_user=carrinho.id_user)
+
+            compra.pagar()
+            compra.save()
+
+            compra.gerar_eticket()
+            carrinho.status = False
+            carrinho.save()
+        return redirect(home)
+    else:
+        user = Usuario.get_usuario(request.user.id)
+
+        carrinho = user.get_carrinho()
+
+        temp = loader.get_template('evento_site/pages/pagamento.html')
+
+        forma_pagamento = FormaPagamento.objects.all()
+
+        return HttpResponse(temp.render({
+            'carrinho': carrinho,
+            'forma_pagamento': forma_pagamento,
+        }, request))
 
 
 # Mensagem de erro de da Usuário ou senha tela do Login
